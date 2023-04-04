@@ -29,8 +29,24 @@ import http from 'node:http'
 
 const users = []
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const { method, url } = req
+
+  const buffers = []
+
+  for await (const chunk of req) {
+    buffers.push(chunk)
+  }
+
+  try {
+    req.body = JSON.parse(Buffer.concat(buffers).toString()) // req.body => criou uma propriedade body dentro do req. antes o body era uma const agora ficou uma propriedade dentro do req
+  } catch {
+    req.body = null
+  }
+
+
+
+  console.log(req.body);
 
   if (method === "GET" && url === "/users") {
     return res
@@ -39,11 +55,13 @@ const server = http.createServer((req, res) => {
   }
 
   if (method === 'POST' && url === '/users') {
+    const { name, email } = req.body
+
     users.push(
       {
         id: 1,
-        nome: 'Vini Mendes',
-        email: 'vinimendes@example.com'
+        nome: name,
+        email: email,
       }
     )
     return res.writeHead(201).end()
