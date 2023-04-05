@@ -1,7 +1,9 @@
 import http from 'node:http'
-import { randomUUID } from 'node:crypto'
-import { Database } from './database.js'
 import { json } from './middlewares/json.js'
+import { routes } from './routes.js'
+// import { randomUUID } from 'node:crypto' // trans to routes
+// import { Database } from './database.js' // trans to route
+
 
 //  {
 // // - Criar Usuários
@@ -32,32 +34,43 @@ import { json } from './middlewares/json.js'
 // // HTTP Status Code
 //  }
 
-const database = new Database()
+
+// const database = new Database() //transfido para routes.
 
 const server = http.createServer(async (req, res) => {
   const { method, url } = req
 
   await json(req, res)
 
-  if (method === "GET" && url === "/users") {
-    const users = database.select('users')
+  const route = routes.find(route => {
+    return route.method === method && route.path === url
+  })
 
-    return res.end(JSON.stringify(users))
+  if (route) {
+    return route.handler(req, res)
   }
 
-  if (method === 'POST' && url === '/users') {
-    const { id, name, email } = req.body
+  // transferido para routes
+  // if (method === "GET" && url === "/users") {
+  //   const users = database.select('users')
 
-    const user = {
-      id: randomUUID(),
-      name,
-      email,
-    }
+  //   return res.end(JSON.stringify(users))
+  // }
+  // transferido para routes
+  // if (method === 'POST' && url === '/users') {
+  //   const { name, email } = req.body
 
-    database.insert('users', user)
+  //   const user = {
+  //     id: randomUUID(),
+  //     name,
+  //     email,
+  //   }
 
-    return res.writeHead(201).end()
-  }
+  //   database.insert('users', user)
+
+  //   return res.writeHead(201).end()
+  // }
+
   return res.writeHead(404).end('Not Found.')
 })
 
